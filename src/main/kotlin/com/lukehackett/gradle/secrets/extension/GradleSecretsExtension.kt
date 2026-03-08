@@ -74,7 +74,7 @@ constructor(
   /** Internal lazy loader that constructs the Hoplite hierarchy. The last source added has the highest priority. */
   @PublishedApi
   internal val loader: ConfigLoader by lazy {
-    ConfigLoaderBuilder.Companion.default()
+    ConfigLoaderBuilder.default()
         .apply {
           if (useGradle) addPropertySource(GradlePropertySource(project))
           customFiles.forEach { addFileSource(it, optional = true) }
@@ -199,16 +199,35 @@ constructor(
       default: T?,
   ): T {
     val loader = createLoader()
+    val resolvedClass = resolveBoxedClass(klass)
 
-    // bind(klass, key) attempts to find a node at 'key' and decode it as 'klass'
-    return loader.configBinder().bind(klass, key).getOrElse { failure ->
+    // bind(resolvedClass, key) attempts to find a node at 'key' and decode it as 'resolvedClass'
+    @Suppress("UNCHECKED_CAST")
+    return loader.configBinder().bind(resolvedClass, key).getOrElse { failure ->
       default
           ?: throw GradleException(
               "Secret '$key' not found or could not be decoded as ${klass.simpleName}.\n" +
                   "Reason: ${failure.description()}",
           )
-    }
+    } as T
   }
+
+  /**
+   * Maps Kotlin primitive [KClass] types to their JVM boxed equivalents so that Hoplite's binder resolves them
+   * consistently across all JDK versions.
+   */
+  private fun <T : Any> resolveBoxedClass(klass: KClass<T>): KClass<out Any> =
+      when (klass) {
+        Int::class -> Integer::class
+        Long::class -> java.lang.Long::class
+        Float::class -> java.lang.Float::class
+        Double::class -> java.lang.Double::class
+        Boolean::class -> java.lang.Boolean::class
+        Short::class -> java.lang.Short::class
+        Byte::class -> java.lang.Byte::class
+        Char::class -> Character::class
+        else -> klass
+      }
 
   /**
    * Create the loader dynamically. Note: For extreme performance in large builds, you could cache this, but for a
