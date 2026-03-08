@@ -14,6 +14,7 @@ plugins {
 }
 
 group = "com.lukehackett.gradle.secrets"
+
 version = "1.0.0"
 
 // Java version in use across the project (must be a major version like "25", not "25.0.1")
@@ -120,5 +121,8 @@ tasks.named<Test>("test") {
   testLogging {
     events("passed", "skipped", "failed")
     showStandardStreams = true
+    showExceptions = true
+    showStackTraces = true
+    exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
   }
 }

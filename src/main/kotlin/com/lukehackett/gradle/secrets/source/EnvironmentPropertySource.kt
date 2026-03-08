@@ -30,10 +30,25 @@ class EnvironmentPropertySource(
 
     val key = path.first()
     if (path.size == 1) {
-      map[key] = value
+      // Leaf node: only set the value if the key is not already occupied by a subtree.
+      // If a Map already exists here (from a longer env-var key), we skip this leaf
+      // to avoid overwriting the subtree.
+      val existing = map[key]
+      if (existing !is MutableMap<*, *>) {
+        map[key] = value
+      }
     } else {
+      val existing = map[key]
       @Suppress("UNCHECKED_CAST")
-      val child = map.computeIfAbsent(key) { mutableMapOf<String, Any>() } as MutableMap<String, Any>
+      val child =
+          when (existing) {
+            is MutableMap<*, *> -> existing as MutableMap<String, Any>
+            else -> {
+              // Either no entry yet, or a String leaf from a shorter env-var key.
+              // Replace it with a subtree so the longer key can be stored.
+              mutableMapOf<String, Any>().also { map[key] = it }
+            }
+          }
       insert(child, path.drop(1), value)
     }
   }
