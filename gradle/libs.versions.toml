@@ -1,0 +1,30 @@
+[versions]
+kotlin = "2.3.0"
+shadow-jar = "8.1.1"
+hoplite = "2.9.0"
+mockk = "1.14.9"
+junit = "6.0.3"
+detekt = "2.0.0-alpha.2"
+kover = "0.9.7"
+ktfmt = "0.25.0"
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+shadow-jar = { id = "com.github.johnrengelman.shadow", version.ref = "shadow-jar" }
+detekt = { id = "dev.detekt", version.ref = "detekt" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
+ktfmt = { id = "com.ncorti.ktfmt.gradle", version.ref = "ktfmt" }
+
+[libraries]
+hoplite-core = { module = "com.sksamuel.hoplite:hoplite-core", version.ref = "hoplite" }
+hoplite-yaml = { module = "com.sksamuel.hoplite:hoplite-yaml", version.ref = "hoplite" }
+hoplite-toml = { module = "com.sksamuel.hoplite:hoplite-toml", version.ref = "hoplite" }
+hoplite-json = { module = "com.sksamuel.hoplite:hoplite-json", version.ref = "hoplite" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit" }
+junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
+junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
+
+[bundles]
+hoplite = ["hoplite-core", "hoplite-yaml", "hoplite-toml", "hoplite-json"]
+junit = ["junit-jupiter-api", "junit-jupiter-engine"]
