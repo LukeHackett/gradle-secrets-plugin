@@ -61,9 +61,6 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
 
-      - name: Print Java version
-        run: java -version
-
       - name: Run unit tests
         run: ./gradlew test
 
