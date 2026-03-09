@@ -3,7 +3,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-  alias(libs.plugins.kotlin.jvm)
   alias(libs.plugins.shadow.jar)
   alias(libs.plugins.detekt)
   alias(libs.plugins.kover)
@@ -118,6 +117,7 @@ tasks.withType<KotlinCompile>().configureEach {
 
 tasks.named<Test>("test") {
   useJUnitPlatform()
+  jvmArgs("--enable-native-access=ALL-UNNAMED")
   testLogging {
     events("passed", "skipped", "failed")
     showStandardStreams = true

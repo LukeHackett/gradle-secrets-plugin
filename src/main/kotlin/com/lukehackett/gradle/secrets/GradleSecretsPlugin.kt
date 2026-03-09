@@ -34,9 +34,17 @@ class GradleSecretsPlugin : Plugin<Project> {
    * This method registers the [GradleSecretsExtension] under the name "secrets", enabling the configuration block and
    * retrieval methods within the project.
    *
+   * Gradle project properties are snapshotted eagerly at configuration time so that the extension does not need to
+   * retain a reference to the [Project] object, keeping it compatible with Gradle's configuration cache.
+   *
    * @param project The project to which the plugin is being applied.
    */
   override fun apply(project: Project) {
-    project.extensions.create("secrets", GradleSecretsExtension::class.java, project)
+    val extension = project.extensions.create("secrets", GradleSecretsExtension::class.java)
+
+    // Snapshot the Gradle project properties at configuration time so that no Project reference
+    // leaks into the serializable extension graph.
+    @Suppress("UNCHECKED_CAST")
+    extension.gradleProperties = project.properties.filterValues { it is String } as Map<String, String>
   }
 }

@@ -5,22 +5,18 @@ import com.sksamuel.hoplite.PropertySourceContext
 import com.sksamuel.hoplite.StringNode
 import com.sksamuel.hoplite.Undefined
 import com.sksamuel.hoplite.fp.Validated
-import io.mockk.every
 import io.mockk.mockk
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import org.gradle.api.Project
 import org.junit.jupiter.api.Test
 
 class GradlePropertySourceTest {
-  private val project = mockk<Project>()
   private val context = mockk<PropertySourceContext>()
-  private val propertySource = GradlePropertySource(project)
 
   @Test
   fun `should return Undefined when project has no properties`() {
     // Given
-    every { project.properties } returns emptyMap()
+    val propertySource = GradlePropertySource(emptyMap())
 
     // When
     val result = propertySource.node(context)
@@ -35,7 +31,7 @@ class GradlePropertySourceTest {
   fun `should explode dot-notation keys into nested nodes`() {
     // Given
     val props = mapOf("server.port" to "8080")
-    every { project.properties } returns props
+    val propertySource = GradlePropertySource(props)
 
     // When
     val result = propertySource.node(context)
@@ -51,7 +47,7 @@ class GradlePropertySourceTest {
   fun `should handle multiple nested properties under same prefix`() {
     // Given
     val props = mapOf("db.host" to "localhost", "db.port" to "5432")
-    every { project.properties } returns props
+    val propertySource = GradlePropertySource(props)
 
     // When
     val result = propertySource.node(context)
@@ -64,14 +60,11 @@ class GradlePropertySourceTest {
   }
 
   @Test
-  fun `should only include string properties and ignore other types`() {
-    // Given
-    val mixedProperties =
-        mapOf(
-            "api.key" to "secret-value",
-            "api.timeout" to 5000, // Non-string
-        )
-    every { project.properties } returns mixedProperties
+  fun `should include all provided string properties`() {
+    // Given — filtering of non-string values now happens at snapshot time in the plugin,
+    // so GradlePropertySource always receives a Map<String, String>.
+    val props = mapOf("api.key" to "secret-value")
+    val propertySource = GradlePropertySource(props)
 
     // When
     val result = propertySource.node(context)
@@ -79,12 +72,15 @@ class GradlePropertySourceTest {
     // Then
     val root = (result as Validated.Valid).value as MapNode
     val apiNode = root.map["api"] as MapNode
-    assertEquals(1, apiNode.map.size) // Timeout should have been filtered out
+    assertEquals(1, apiNode.map.size)
     assertTrue(apiNode.map.containsKey("key"))
   }
 
   @Test
   fun `should report correct source name`() {
+    // Given
+    val propertySource = GradlePropertySource(emptyMap())
+
     // When
     val sourceName = propertySource.source()
 

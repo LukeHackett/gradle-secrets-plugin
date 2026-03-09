@@ -10,20 +10,20 @@ import com.sksamuel.hoplite.StringNode
 import com.sksamuel.hoplite.Undefined
 import com.sksamuel.hoplite.decoder.DotPath
 import com.sksamuel.hoplite.fp.Validated
-import org.gradle.api.Project
 
 /**
  * A Hoplite [PropertySource] that provides access to Gradle project properties. Handles dot-notation by expanding flat
  * keys into a nested tree structure.
+ *
+ * This class accepts a pre-built [Map] of properties instead of a [org.gradle.api.Project] reference, making it safe
+ * for Gradle's configuration cache (no non-serializable objects are retained).
  */
 class GradlePropertySource(
-    private val project: Project,
+    private val properties: Map<String, String>,
 ) : PropertySource {
   override fun source(): String = "Gradle Project Properties"
 
   override fun node(context: PropertySourceContext): ConfigResult<Node> {
-    val properties = project.properties.filterValues { it is String } as Map<String, String>
-
     if (properties.isEmpty()) return Validated.Valid(Undefined)
 
     // We convert the flat map "a.b.c" -> "value" into a nested Map tree
