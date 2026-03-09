@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
   alias(libs.plugins.shadow.jar)
+  alias(libs.plugins.publish)
   alias(libs.plugins.detekt)
   alias(libs.plugins.kover)
   alias(libs.plugins.ktfmt)
