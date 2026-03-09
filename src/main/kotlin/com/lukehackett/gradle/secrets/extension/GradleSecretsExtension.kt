@@ -5,20 +5,22 @@ import com.lukehackett.gradle.secrets.source.GradlePropertySource
 import com.sksamuel.hoplite.ConfigLoader
 import com.sksamuel.hoplite.ConfigLoaderBuilder
 import com.sksamuel.hoplite.ExperimentalHoplite
-import com.sksamuel.hoplite.addEnvironmentSource
 import com.sksamuel.hoplite.addFileSource
 import com.sksamuel.hoplite.fp.getOrElse
 import java.io.File
 import javax.inject.Inject
 import kotlin.reflect.KClass
 import org.gradle.api.GradleException
-import org.gradle.api.Project
+import org.gradle.api.file.ProjectLayout
 
 /**
  * Extension for retrieving sensitive configuration values across different environments.
  *
  * This extension provides a consistent way to access secrets while maintaining a strict precedence order. It is
  * designed to be friendly to both Kotlin and Java/Groovy users.
+ *
+ * This extension is **configuration-cache compatible**: it does not hold a reference to [org.gradle.api.Project].
+ * Instead, it captures only serializable data (file paths, property snapshots, and the injectable [ProjectLayout]).
  *
  * ### Example Usage in build.gradle.kts:
  * ```kotlin
@@ -46,19 +48,25 @@ import org.gradle.api.Project
 abstract class GradleSecretsExtension
 @Inject
 constructor(
-    private val project: Project,
+    private val layout: ProjectLayout,
 ) {
   private val customFiles = mutableListOf<File>()
   private var useEnv = true
   private var useGradle = true
 
   /**
+   * A snapshot of the Gradle project properties captured at configuration time. This avoids retaining a
+   * [org.gradle.api.Project] reference which is not serializable for the configuration cache.
+   */
+  internal var gradleProperties: Map<String, String> = emptyMap()
+
+  /**
    * Adds a file to the list of secret sources. Later files in the list will override values from earlier files.
    *
-   * @param path A path object resolvable by [Project.file] (e.g., String, File, or Path).
+   * @param path A path relative to the project directory (e.g., "secrets.properties" or "config/auth.properties").
    */
   fun file(path: Any) {
-    customFiles.add(project.file(path))
+    customFiles.add(layout.projectDirectory.file(path.toString()).asFile)
   }
 
   /** Disables the loading of values from System Environment Variables. */
@@ -69,18 +77,6 @@ constructor(
   /** Disables the loading of values from Gradle Project properties (gradle.properties). */
   fun disableGradleProperties() {
     useGradle = false
-  }
-
-  /** Internal lazy loader that constructs the Hoplite hierarchy. The last source added has the highest priority. */
-  @PublishedApi
-  internal val loader: ConfigLoader by lazy {
-    ConfigLoaderBuilder.default()
-        .apply {
-          if (useGradle) addPropertySource(GradlePropertySource(project))
-          customFiles.forEach { addFileSource(it, optional = true) }
-          if (useEnv) addEnvironmentSource()
-        }
-        .build()
   }
 
   /**
@@ -198,18 +194,30 @@ constructor(
       klass: KClass<T>,
       default: T?,
   ): T {
-    val loader = createLoader()
-    val resolvedClass = resolveBoxedClass(klass)
+    // Hoplite discovers many decoders via ServiceLoader which uses the thread context ClassLoader.
+    // During Gradle configuration (especially Kotlin DSL), the context ClassLoader can differ from the
+    // plugin's ClassLoader, causing Hoplite to "see" no decoders.
+    val thread = Thread.currentThread()
+    val originalContextClassLoader = thread.contextClassLoader
+    thread.contextClassLoader = javaClass.classLoader
+    try {
+      val loader = createLoader()
 
-    // bind(resolvedClass, key) attempts to find a node at 'key' and decode it as 'resolvedClass'
-    @Suppress("UNCHECKED_CAST")
-    return loader.configBinder().bind(resolvedClass, key).getOrElse { failure ->
-      default
-          ?: throw GradleException(
-              "Secret '$key' not found or could not be decoded as ${klass.simpleName}.\n" +
-                  "Reason: ${failure.description()}",
-          )
-    } as T
+      // Hoplite's binder has multiple overloads for bind(...). Under Gradle's embedded Kotlin (Kotlin DSL),
+      // passing a KClass with an out-projection can cause the wrong overload to be selected.
+      // We explicitly cast back to KClass<T> to force the generic bind overload.
+      @Suppress("UNCHECKED_CAST") val resolvedClass = resolveBoxedClass(klass) as KClass<T>
+
+      return loader.configBinder().bind(resolvedClass, key).getOrElse { failure ->
+        default
+            ?: throw GradleException(
+                "Secret '$key' not found or could not be decoded as ${klass.simpleName}.\n" +
+                    "Reason: ${failure.description()}",
+            )
+      } as T
+    } finally {
+      thread.contextClassLoader = originalContextClassLoader
+    }
   }
 
   /**
@@ -254,7 +262,7 @@ constructor(
 
             // 4. Gradle Properties
             if (useGradle) {
-              addPropertySource(GradlePropertySource(project))
+              addPropertySource(GradlePropertySource(gradleProperties))
             }
 
             // 5. Explicitly handle the sealed type warning

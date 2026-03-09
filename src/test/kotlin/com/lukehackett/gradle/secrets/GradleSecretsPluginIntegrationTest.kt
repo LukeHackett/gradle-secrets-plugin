@@ -111,4 +111,17 @@ class GradleSecretsPluginIntegrationTest {
     // Then
     assertTrue(result.output.contains("SECRET_VALUE=file-wins"))
   }
+
+  @Test
+  fun `should resolve secret at configuration time (outside doLast)`() {
+    // Given
+    givenProject("functionalTest/config-time-resolve")
+    val envVars = mapOf("MY_API_KEY" to "config-time-value")
+
+    // When
+    val result = whenRunningGradle(env = envVars)
+
+    // Then
+    assertTrue(result.output.contains("SECRET_VALUE=config-time-value"))
+  }
 }

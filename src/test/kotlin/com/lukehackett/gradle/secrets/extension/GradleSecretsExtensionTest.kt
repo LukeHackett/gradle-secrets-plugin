@@ -21,7 +21,10 @@ class GradleSecretsExtensionTest {
   fun setup() {
     // Given
     project = ProjectBuilder.builder().withProjectDir(tempDir).build()
-    extension = project.objects.newInstance(GradleSecretsExtension::class.java, project)
+    extension = project.objects.newInstance(GradleSecretsExtension::class.java)
+    // Snapshot properties just like the plugin does at configuration time
+    @Suppress("UNCHECKED_CAST")
+    extension.gradleProperties = project.properties.filterValues { it is String } as Map<String, String>
   }
 
   @Test
@@ -62,6 +65,8 @@ class GradleSecretsExtensionTest {
     val key = "gradleProp"
     val value = "property-value"
     project.extensions.extraProperties.set(key, value)
+    @Suppress("UNCHECKED_CAST")
+    extension.gradleProperties = project.properties.filterValues { it is String } as Map<String, String>
 
     // When
     val result = extension.get<String>(key)
@@ -87,6 +92,8 @@ class GradleSecretsExtensionTest {
   fun `generic get should decode types`() {
     // Given
     project.extensions.extraProperties.set("port", "8081")
+    @Suppress("UNCHECKED_CAST")
+    extension.gradleProperties = project.properties.filterValues { it is String } as Map<String, String>
 
     // When
     val port: Int = extension.get("port")
@@ -99,6 +106,8 @@ class GradleSecretsExtensionTest {
   fun `should support type conversion to Int`() {
     // Given
     project.extensions.extraProperties.set("server.port", "8080")
+    @Suppress("UNCHECKED_CAST")
+    extension.gradleProperties = project.properties.filterValues { it is String } as Map<String, String>
 
     // When
     val port = extension.asInt("server.port")
@@ -111,6 +120,8 @@ class GradleSecretsExtensionTest {
   fun `should support type conversion to Long`() {
     // Given
     project.extensions.extraProperties.set("timeout.long", "9999")
+    @Suppress("UNCHECKED_CAST")
+    extension.gradleProperties = project.properties.filterValues { it is String } as Map<String, String>
 
     // When
     val result = extension.asLong("timeout.long")
@@ -123,6 +134,8 @@ class GradleSecretsExtensionTest {
   fun `should support type conversion to Float`() {
     // Given
     project.extensions.extraProperties.set("pi.float", "3.14")
+    @Suppress("UNCHECKED_CAST")
+    extension.gradleProperties = project.properties.filterValues { it is String } as Map<String, String>
 
     // When
     val result = extension.asFloat("pi.float")
@@ -135,6 +148,8 @@ class GradleSecretsExtensionTest {
   fun `should support type conversion to Double`() {
     // Given
     project.extensions.extraProperties.set("pi.double", "3.1415")
+    @Suppress("UNCHECKED_CAST")
+    extension.gradleProperties = project.properties.filterValues { it is String } as Map<String, String>
 
     // When
     val result = extension.asDouble("pi.double")
@@ -147,6 +162,8 @@ class GradleSecretsExtensionTest {
   fun `should support type conversion to Boolean`() {
     // Given
     project.extensions.extraProperties.set("feature.enabled", "true")
+    @Suppress("UNCHECKED_CAST")
+    extension.gradleProperties = project.properties.filterValues { it is String } as Map<String, String>
 
     // When
     val enabled = extension.asBoolean("feature.enabled")
@@ -160,6 +177,8 @@ class GradleSecretsExtensionTest {
     // Given
     val key = "test.key"
     project.extensions.extraProperties.set(key, "some-value")
+    @Suppress("UNCHECKED_CAST")
+    extension.gradleProperties = project.properties.filterValues { it is String } as Map<String, String>
     extension.disableGradleProperties()
 
     // When
@@ -198,6 +217,8 @@ class GradleSecretsExtensionTest {
 
     extension.file(secretsFile)
     project.extensions.extraProperties.set(key, gradleValue)
+    @Suppress("UNCHECKED_CAST")
+    extension.gradleProperties = project.properties.filterValues { it is String } as Map<String, String>
 
     // When
     val result = extension.get<String>(key)
@@ -210,6 +231,8 @@ class GradleSecretsExtensionTest {
   fun `asType should work for Java-style class access`() {
     // Given
     project.extensions.extraProperties.set("timeout", "100")
+    @Suppress("UNCHECKED_CAST")
+    extension.gradleProperties = project.properties.filterValues { it is String } as Map<String, String>
 
     // When
     val result = extension.asType("timeout", Int::class.javaObjectType)
@@ -221,6 +244,8 @@ class GradleSecretsExtensionTest {
   @Test
   fun `should fail if value cannot be decoded to requested type`() {
     project.extensions.extraProperties.set("port", "not-a-number")
+    @Suppress("UNCHECKED_CAST")
+    extension.gradleProperties = project.properties.filterValues { it is String } as Map<String, String>
 
     val exception = assertFailsWith<GradleException> { extension.asInt("port") }
 
