@@ -1,5 +1,5 @@
 [versions]
-shadow-jar = "8.1.1"
+shadow-jar = "9.3.2"
 publish = "2.1.0"
 hoplite = "2.9.0"
 mockk = "1.14.9"
@@ -9,7 +9,7 @@ kover = "0.9.7"
 ktfmt = "0.25.0"
 
 [plugins]
-shadow-jar = { id = "com.github.johnrengelman.shadow", version.ref = "shadow-jar" }
+shadow-jar = { id = "com.gradleup.shadow", version.ref = "shadow-jar" }
 publish = { id = "com.gradle.plugin-publish", version.ref = "publish" }
 detekt = { id = "dev.detekt", version.ref = "detekt" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }

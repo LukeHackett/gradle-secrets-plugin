@@ -76,10 +76,7 @@ gradlePlugin {
 
 publishing {
   publications {
-    create<MavenPublication>("pluginMaven") {
-      // Tells Gradle to publish the shadow JAR instead of the standard thin JAR
-      project.shadow.component(this)
-
+    withType<MavenPublication> {
       pom {
         name.set(pluginName)
         description.set(pluginDescription)
@@ -101,6 +98,13 @@ publishing {
   }
 }
 
+tasks.withType<KotlinCompile>().configureEach {
+  compilerOptions {
+    jvmTarget.set(JvmTarget.fromTarget(javaVersion))
+    freeCompilerArgs.add("-Xjsr305=strict")
+  }
+}
+
 tasks.withType<ShadowJar> {
   archiveClassifier.set("")
 
@@ -109,12 +113,7 @@ tasks.withType<ShadowJar> {
   mergeServiceFiles()
 }
 
-tasks.withType<KotlinCompile>().configureEach {
-  compilerOptions {
-    jvmTarget.set(JvmTarget.fromTarget(javaVersion))
-    freeCompilerArgs.add("-Xjsr305=strict")
-  }
-}
+tasks.named<Jar>("jar") { enabled = false }
 
 tasks.named<Test>("test") {
   useJUnitPlatform()
