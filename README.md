@@ -1,10 +1,9 @@
 <!-- Project Introduction -->
 <div align="center">
   <a href="https://github.com/LukeHackett/gradle-secrets-plugin">
-    <img src="./.github/docs/logo.png" alt="Logo" width="390" height="109">
+    <img src="./.github/docs/logo.png" alt="Logo" width="400" height="125">
   </a>
-
-<h3 align="center">gradle-secrets-plugin</h3>
+  <h3 align="center">gradle-secrets-plugin</h3>
   <p align="center">
     A type-safe <a href="https://gradle.org/">gradle</a> plugin for retrieving sensitive configuration from 
     environment variables, files, and Gradle properties

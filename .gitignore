@@ -15,6 +15,9 @@
 # AWS User-specific
 .idea/**/aws.xml
 
+# Copilot User-specific
+.idea/**/copilot.*.xml
+
 # Generated files
 .idea/**/contentModel.xml
 
