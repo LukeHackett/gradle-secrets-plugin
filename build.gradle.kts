@@ -13,17 +13,11 @@ plugins {
   `maven-publish`
 }
 
-group = "com.lukehackett.gradle.secrets"
-
-version = findProperty("pluginVersion")?.toString() ?: "1.0.0"
-
 // Java version in use across the project (must be a major version like "25", not "25.0.1")
 val javaVersion = file(".java-version").readText().trim()
-
-val pluginName = "Gradle Secrets Plugin"
-val pluginDescription =
-    "A type-safe gradle plugin for retrieving sensitive configuration from environment variables, files, and Gradle properties"
-val pluginRepositoryUrl = "https://github.com/LukeHackett/gradle-secrets-plugin"
+val projectName = project.name
+val projectDescription = project.description.orEmpty()
+val repositoryUrl: String by project
 
 java {
   toolchain { languageVersion.set(JavaLanguageVersion.of(javaVersion.toInt())) }
@@ -65,22 +59,22 @@ gradlePlugin {
     create("secrets") {
       id = "$group"
       implementationClass = "$group.GradleSecretsPlugin"
-      displayName = pluginName
-      description = pluginDescription
+      displayName = projectName
+      description = projectDescription
       tags.set(listOf("secrets", "configuration", "hoplite", "security"))
     }
   }
-  website.set(pluginRepositoryUrl)
-  vcsUrl.set("$pluginRepositoryUrl.git")
+  website.set(repositoryUrl)
+  vcsUrl.set("$repositoryUrl.git")
 }
 
 publishing {
   publications {
     withType<MavenPublication> {
       pom {
-        name.set(pluginName)
-        description.set(pluginDescription)
-        url.set(pluginRepositoryUrl)
+        name.set(projectName)
+        description.set(projectDescription)
+        url.set(repositoryUrl)
         licenses {
           license {
             name.set("MIT License")

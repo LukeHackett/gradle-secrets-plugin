@@ -26,8 +26,17 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
 
+      - name: Resolve version
+        id: version
+        run: echo "semantic=${RELEASE_TAG#v}" >> $GITHUB_OUTPUT
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+
+      - name: Build jar
+        run: ./gradlew build -Pversion=${{ steps.version.outputs.semantic }} -x check
+
       - name: Publish to Gradle Plugin Portal
-        run: ./gradlew publishPlugins -PpluginVersion=${{ github.event.release.tag_name }} -x test -x ktfmtCheck -x detekt -x koverVerify
+        run: ./gradlew publishPlugins -Pversion=${{ steps.version.outputs.semantic }} -x check
         env:
           GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
           GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
