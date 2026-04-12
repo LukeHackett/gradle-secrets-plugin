@@ -75,7 +75,7 @@ jobs:
 
       - name: Publish Kover coverage report
         if: always()
-        uses: mi-kas/kover-report@v1
+        uses: mi-kas/kover-report@v2
         with:
           path: build/reports/kover/report.xml
           title: Code Coverage
