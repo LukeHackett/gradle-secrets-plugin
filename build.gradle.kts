@@ -111,7 +111,11 @@ tasks.named<Jar>("jar") { enabled = false }
 
 tasks.named<Test>("test") {
   useJUnitPlatform()
-  jvmArgs("--enable-native-access=ALL-UNNAMED")
+  jvmArgs(
+      "--enable-native-access=ALL-UNNAMED",
+      // Silence JDK warning emitted because MockK/byte-buddy loads its agent dynamically.
+      "-XX:+EnableDynamicAgentLoading",
+  )
   testLogging {
     events("passed", "skipped", "failed")
     showStandardStreams = true
