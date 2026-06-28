@@ -1,22 +1,70 @@
 version: 2
 
 updates:
-  # Gradle dependencies (libs.versions.toml + build.gradle.kts)
-  - package-ecosystem: gradle
-    directory: /
-    schedule:
-      interval: weekly
-    labels:
-      - dependencies
-    open-pull-requests-limit: 10
-
-  # GitHub Actions versions
+  # GitHub Actions
   - package-ecosystem: github-actions
-    directory: /
+    directory: "/"
+    open-pull-requests-limit: 10
+    cooldown:
+      default-days: 5
     schedule:
       interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: "Europe/London"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
     labels:
       - dependencies
-      - github-actions
-    open-pull-requests-limit: 5
+    # Ignore patch and minor updates since our workflows pin actions to the moving major tag.
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-patch"
+          - "version-update:semver-minor"
 
+  # Gradle
+  - package-ecosystem: gradle
+    directory: "/"
+    open-pull-requests-limit: 10
+    cooldown:
+      default-days: 5
+      semver-major-days: 14
+      semver-minor-days: 7
+      semver-patch-days: 3
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: "Europe/London"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    labels:
+      - dependencies
+    groups:
+      hoplite:
+        patterns:
+          - "com.sksamuel.hoplite:*"
+      junit:
+        patterns:
+          - "org.junit.jupiter:*"
+          - "org.junit.platform:*"
+      kotlin:
+        patterns:
+          - "org.jetbrains.kotlin:*"
+          - "org.jetbrains.kotlin.*:*"
+      code-quality:
+        patterns:
+          - "dev.detekt*:*"
+          - "io.gitlab.arturbosch.detekt*:*"
+          - "org.jetbrains.kotlinx.kover*:*"
+          - "com.ncorti.ktfmt.gradle*:*"
+      gradle-publishing:
+        patterns:
+          - "com.gradleup.shadow*:*"
+          - "com.gradle.plugin-publish*:*"
+      gradle-minor-and-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
