@@ -63,6 +63,13 @@ gradlePlugin {
       description = projectDescription
       tags.set(listOf("secrets", "configuration", "hoplite", "security"))
     }
+    create("secretsSettings") {
+      id = "$group.settings"
+      implementationClass = "$group.GradleSecretsSettingsPlugin"
+      displayName = "$projectName (Settings)"
+      description = "Applies the secrets plugin to every project in a multi-module build."
+      tags.set(listOf("secrets", "configuration", "hoplite", "security", "settings", "multi-module"))
+    }
   }
   website.set(repositoryUrl)
   vcsUrl.set("$repositoryUrl.git")

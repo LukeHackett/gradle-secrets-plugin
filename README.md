@@ -18,37 +18,74 @@
     <a href="https://github.com/LukeHackett/gradle-secrets-plugin/issues">
       <img src="https://img.shields.io/github/issues/LukeHackett/gradle-secrets-plugin?style=flat-square" alt="Issues" />
     </a>
+    <a href="https://plugins.gradle.org/plugin/com.lukehackett.gradle.secrets">
+      <img src="https://img.shields.io/gradle-plugin-portal/v/com.lukehackett.gradle.secrets?style=flat-square" alt="Latest Version" />
+    </a>
   </p>
 </div>
 
 <!-- Core Features -->
 ## Features
 
-- 🔐 **Unified Secret Resolution** — Retrieve secrets from environment variables, files, and Gradle properties through a single API
-- 📋 **Strict Priority Hierarchy** — Sources are resolved in a deterministic order: Environment Variables → Secret Files → Gradle Properties
-- 🔒 **Type-Safe Access** — Decode secrets as `String`, `Int`, `Long`, `Boolean`, `Float`, `Double`, or custom types
-- 📁 **Multiple File Sources** — Register multiple secret files (`.properties`, `.yaml`, `.toml`, `.json`), with later files overriding earlier ones
-- ⚙️ **Configurable Sources** — Selectively disable environment variables or Gradle properties as sources
-- 🛡️ **Default Values** — Provide fallback defaults to avoid build failures when a secret is missing
+- 🔐 **[Unified Secret Resolution](./docs/usage.md#basic-usage)** — Retrieve secrets from environment variables, files, and Gradle properties through a single API
+- 📋 **[Strict Priority Hierarchy](./docs/usage.md#secret-resolution-order)** — Sources are resolved in a deterministic order: Environment Variables → Secret Files → Gradle Properties
+- 🔒 **[Type-Safe Access](./docs/usage.md#type-conversions)** — Decode secrets as `String`, `Int`, `Long`, `Boolean`, `Float`, `Double`, or custom types
+- 📁 **[Multiple File Sources](./docs/usage.md#using-secret-files)** — Register multiple secret files (`.properties`, `.yaml`, `.toml`, `.json`), with later files overriding earlier ones
+- ⚙️ **[Configurable Sources](./docs/usage.md#configuration)** — Selectively disable environment variables or Gradle properties as sources
+- 🛡️ **[Default Values](./docs/usage.md#default-values)** — Provide fallback defaults to avoid build failures when a secret is missing
 - 🧩 **Kotlin & Groovy Compatible** — Works seamlessly in both `build.gradle.kts` and `build.gradle` scripts
+- 🔗 **[Multi-module Ready](./docs/multi-module.md)** — A settings-level plugin variant applies the extension to every project automatically
+
+<!-- Requirements -->
+## Requirements
+
+| Requirement | Version |
+|---|---|
+| Gradle | 9.0 or later |
+| JVM | 25 or later |
+| Configuration cache | ✅ Supported |
+| Kotlin DSL / Groovy DSL | ✅ Both |
 
 <!-- Getting Started -->
 ## Installation
 
-Apply the plugin in your `build.gradle.kts`:
+Two plugin IDs are published from the same artifact — pick the one that matches your build layout:
+
+| Plugin ID | Apply in | Use for |
+|---|---|---|
+| `com.lukehackett.gradle.secrets` | `build.gradle(.kts)` | Single-module builds, or multi-module builds where you apply it explicitly per project |
+| `com.lukehackett.gradle.secrets.settings` | `settings.gradle(.kts)` | Multi-module builds — applies the plugin to every project automatically, with optional shared configuration |
+
+### Single-module builds
 
 ```kotlin
+// build.gradle.kts
 plugins {
-    id("com.lukehackett.gradle.secrets") version "1.0.0"
+    id("com.lukehackett.gradle.secrets") version "<latest>"
+}
+```
+
+### Multi-module builds
+
+```kotlin
+// settings.gradle.kts
+plugins {
+    id("com.lukehackett.gradle.secrets.settings") version "<latest>"
 }
 ```
 
 <details>
-<summary>Using Groovy (build.gradle)</summary>
+<summary>Using Groovy (build.gradle / settings.gradle)</summary>
 
 ```groovy
+// build.gradle
 plugins {
-    id 'com.lukehackett.gradle.secrets' version '1.0.0'
+    id 'com.lukehackett.gradle.secrets' version '<latest>'
+}
+
+// settings.gradle
+plugins {
+    id 'com.lukehackett.gradle.secrets.settings' version '<latest>'
 }
 ```
 
@@ -63,7 +100,7 @@ buildscript {
         gradlePluginPortal()
     }
     dependencies {
-        classpath("com.lukehackett.gradle.secrets:gradle-secrets-plugin:1.0.0")
+        classpath("com.lukehackett.gradle.secrets:gradle-secrets-plugin:<latest>")
     }
 }
 
@@ -72,103 +109,64 @@ apply(plugin = "com.lukehackett.gradle.secrets")
 
 </details>
 
-<!-- Usage -->
-## Usage
+<!-- Quick Start -->
+## Quick Start
 
-Once the plugin is applied, a `secrets` extension is automatically available in your build script. 
+Once the plugin is applied, the `secrets` extension is available in your build scripts.
 
-Use it to retrieve sensitive values such as API keys, tokens, and passwords.
-
-### Basic Usage
+### Single-module build
 
 ```kotlin
-// Retrieve a secret as a String
-val apiKey: String = secrets.asString("my.api.key")
-
-// Use the type-safe generic accessor (Kotlin only)
-val apiKey: String = secrets.get("my.api.key")
-```
-
-### Type Conversions
-
-The plugin provides type-safe accessors for common types:
-
-```kotlin
-val host: String  = secrets.asString("server.host")
-val port: Int     = secrets.asInt("server.port")
-val timeout: Long = secrets.asLong("server.timeout")
-val debug: Boolean = secrets.asBoolean("app.debug")
-val rate: Float   = secrets.asFloat("app.rate")
-val pi: Double    = secrets.asDouble("math.pi")
-```
-
-### Default Values
-
-Provide a fallback value to avoid build failures when a secret is not found:
-
-```kotlin
-val port: Int = secrets.asInt("server.port", 8080)
-val debug: Boolean = secrets.asBoolean("app.debug", false)
-```
-
-### Secret Resolution Order
-
-Secrets are resolved using the following priority (highest to lowest):
-
-| Priority | Source                  | Example                                           |
-|----------|-------------------------|----------------------------------------------------|
-| 1st      | Environment Variables   | `MY_API_KEY=secret123`                             |
-| 2nd      | Registered Secret Files | `my.api.key=secret123` in `secrets.properties`     |
-| 3rd      | Gradle Properties       | `-Pmy.api.key=secret123` or in `gradle.properties` |
-
-Environment variable names are matched by converting the dot-notation key to uppercase with underscores (e.g., `my.api.key` → `MY_API_KEY`).
-
-### Using Secret Files
-
-Register one or more secret files. Supported formats include `.properties`, `.yaml`, `.toml`, and `.json`. Later files take priority over earlier ones:
-
-```kotlin
-secrets {
-    file("config/base.properties")
-    file("config/local.properties") // values here override base.properties
-}
-```
-
-### Configuration
-
-The `secrets` extension supports the following configuration options:
-
-| Option                   | Description                                                      | Default   |
-|--------------------------|------------------------------------------------------------------|-----------|
-| `file(path)`             | Registers a secret file source. Can be called multiple times.    | _none_    |
-| `disableEnvironment()`   | Disables resolution from system environment variables.           | _enabled_ |
-| `disableGradleProperties()` | Disables resolution from Gradle project properties.          | _enabled_ |
-
-#### Full Configuration Example
-
-```kotlin
+// build.gradle.kts
 plugins {
-    id("com.lukehackett.gradle.secrets") version "1.0.0"
+    id("com.lukehackett.gradle.secrets") version "<latest>"
 }
 
 secrets {
-    // Register secret files (later files override earlier ones)
-    file("config/base.properties")
-    file("config/local.properties")
-
-    // Optionally disable specific sources
-    disableEnvironment()
-    disableGradleProperties()
+    file("config/secrets.properties")
 }
 
 tasks.register("deploy") {
     doLast {
-        val token = secrets.asString("deploy.token")
-        val timeout = secrets.asInt("deploy.timeout", 30000)
-        println("Deploying with token and timeout=$timeout")
+        val apiKey = secrets.asString("my.api.key")
+        println("Deploying with key length=${apiKey.length}")
     }
 }
 ```
+
+### Multi-module build
+
+Apply the settings plugin once, then use `secrets` in any project — including inside `allprojects { }` / `subprojects { }`:
+
+```kotlin
+// settings.gradle.kts
+plugins {
+    id("com.lukehackett.gradle.secrets.settings") version "<latest>"
+}
+
+// Optional: shared secret sources applied as defaults to every project
+secrets {
+    file("config/shared.properties")
+}
+```
+
+```kotlin
+// any build.gradle.kts (root or subproject)
+tasks.register("deploy") {
+    doLast {
+        val apiKey = secrets.asString("my.api.key")
+        println("Deploying with key length=${apiKey.length}")
+    }
+}
+```
+
+<!-- Documentation -->
+## Documentation
+
+| Guide | Contents |
+|---|---|
+| [Usage Guide](./docs/usage.md) | Retrieving secrets, type conversions, defaults, resolution order, file sources, configuration options |
+| [Multi-module Builds](./docs/multi-module.md) | Settings plugin, shared configuration, per-project overrides, version catalogs, fallback patterns |
 
 <!-- CONTRIBUTING -->
 ## Contributing
