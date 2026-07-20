@@ -1,5 +1,5 @@
 [versions]
-shadow-jar = "9.4.3"
+shadow-jar = "9.5.1"
 publish = "2.1.1"
 hoplite = "2.9.0"
 mockk = "1.14.11"
