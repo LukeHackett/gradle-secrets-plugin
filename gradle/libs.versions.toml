@@ -1,12 +1,12 @@
 [versions]
-shadow-jar = "9.4.3"
+shadow-jar = "9.6.1"
 publish = "2.1.1"
 hoplite = "2.9.0"
 mockk = "1.14.11"
 junit = "6.1.1"
 detekt = "2.0.0-alpha.5"
-kover = "0.9.8"
-ktfmt = "0.26.0"
+kover = "0.9.9"
+ktfmt = "0.27.0"
 
 [plugins]
 shadow-jar = { id = "com.gradleup.shadow", version.ref = "shadow-jar" }
