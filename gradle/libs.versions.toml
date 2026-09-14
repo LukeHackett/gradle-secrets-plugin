@@ -1,6 +1,6 @@
 [versions]
 shadow-jar = "9.6.1"
-publish = "2.1.1"
+publish = "2.2.0"
 hoplite = "2.9.0"
 mockk = "1.14.11"
 junit = "6.1.1"
