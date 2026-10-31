@@ -17,7 +17,7 @@ plugins {
 val javaVersion = file(".java-version").readText().trim()
 val projectName = project.name
 val projectDescription = project.description.orEmpty()
-val repositoryUrl: String by project
+val repositoryUrl = project.property("repositoryUrl") as String
 
 java {
   toolchain { languageVersion.set(JavaLanguageVersion.of(javaVersion.toInt())) }
