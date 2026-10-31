@@ -5,7 +5,6 @@ import io.mockk.every
 import io.mockk.mockk
 import java.io.File
 import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
@@ -25,7 +24,6 @@ class GradleSecretsSettingsPluginTest {
   fun `plugin implements Plugin of Settings`() {
     val plugin: Plugin<Settings> = GradleSecretsSettingsPlugin()
     assertNotNull(plugin, "GradleSecretsSettingsPlugin must be constructable")
-    assertTrue(plugin is Plugin<*>, "GradleSecretsSettingsPlugin must implement Plugin<Settings>")
   }
 
   @Test

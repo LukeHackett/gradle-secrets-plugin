@@ -44,7 +44,10 @@ class GradleSecretsPlugin : Plugin<Project> {
 
     // Snapshot the Gradle project properties at configuration time so that no Project reference
     // leaks into the serializable extension graph.
-    @Suppress("UNCHECKED_CAST")
-    extension.gradleProperties = project.properties.filterValues { it is String } as Map<String, String>
+    // Project.getProperties() is deprecated in Gradle 9.x; gradle.properties and -P values live in extra properties.
+    extension.gradleProperties =
+        project.extensions.extraProperties.properties
+            .mapNotNull { (key, value) -> (value as? String)?.let { key to it } }
+            .toMap()
   }
 }
