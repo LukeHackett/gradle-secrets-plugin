@@ -86,7 +86,7 @@ class GradleSecretsSettingsPluginIntegrationTest {
             rootProject.name = "multi-module-test"
             include("api", "web")
             """
-                .trimIndent()
+                .trimIndent(),
         )
     val args = listOf(":api:printSecret", ":web:printSecret", "-q")
     // Even with an env var set, the environment source is disabled
@@ -145,7 +145,7 @@ class GradleSecretsSettingsPluginIntegrationTest {
             """
             apply(plugin = "com.lukehackett.gradle.secrets")
             """
-                .trimIndent()
+                .trimIndent(),
         )
     val args = listOf(":api:printSecret", ":web:printSecret", "-q")
 
